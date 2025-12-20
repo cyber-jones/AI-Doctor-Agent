@@ -39,7 +39,32 @@ const MedicalVoiceAgent = () => {
     const vapi = new Vapi(process.env.NEXT_PUBLIC_VAPI_API_KEY!);
     setVapiInstance(vapi);
 
-    vapi.start(process.env.NEXT_PUBLIC_VAPI_VOICE_ASSISTANT_ID!);
+    const VapiAgentConfig = {
+      name: "AI Medical Doctor Voice Agent",
+      firstMessage:
+        "Hi there! I'm your AI medical assistant. How can I help you today?",
+      transcriber: {
+        provider: "assembly-ai",
+        language: "en",
+      },
+      voice: {
+        provider: "vapi",
+        voiceId: sessionDetail?.selectedDoctor?.voiceId,
+      },
+      model: {
+        provider: "openai",
+        modelName: "gpt-4",
+        messages: [
+          {
+            role: "system",
+            content: sessionDetail?.selectedDoctor?.agentPrompt,
+          },
+        ],
+      },
+    };
+
+    // @ts-ignore
+    vapi.start(VapiAgentConfig);
 
     vapi.on("call-start", () => {
       console.log("Call started");
@@ -115,12 +140,13 @@ const MedicalVoiceAgent = () => {
           <p className="text-sm text-gray-400">AI Medical Voice</p>
 
           <div className="mt-12 w-full overflow-y-auto flex flex-col items-center px-10 md:px-28 lg:px-52 xl:px-72">
-            {messages.length > 0 && messages.slice(-4).map((msg: any, index: number) => (
-              <h2 key={index} className="text-gray-400">
-                {msg.role}: {msg.text}
-              </h2>
-            )) }
-  
+            {messages.length > 0 &&
+              messages.slice(-4).map((msg: any, index: number) => (
+                <h2 key={index} className="text-gray-400">
+                  {msg.role}: {msg.text}
+                </h2>
+              ))}
+
             {liveTranscript.length > 0 && (
               <h2 className="text-lg">
                 {currentRole}: {liveTranscript}

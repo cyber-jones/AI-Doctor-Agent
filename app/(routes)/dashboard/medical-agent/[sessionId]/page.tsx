@@ -15,6 +15,7 @@ const MedicalVoiceAgent = () => {
     undefined
   );
   const [callStarted, setCallStarted] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [vapiInstance, setVapiInstance] = useState<Vapi | null>(null);
   const [currentRole, setCurrentRole] = useState<string>("");
   const [liveTranscript, setLiveTranscript] = useState<string>("");
@@ -36,16 +37,60 @@ const MedicalVoiceAgent = () => {
   };
 
   const startCall = () => {
-    const vapi = new Vapi(process.env.NEXT_PUBLIC_VAPI_API_KEY!);
-    setVapiInstance(vapi);
+    setLoading(true);
+
+    // const VapiConfig = {
+    //   id: "8f8b2797-6816-40dd-85bd-a2ee8d24c69c",
+    //   orgId: "0e39e041-7d7d-4fb4-812a-e9e75ba858c8",
+    //   name: "General Physician",
+    //   voice: {
+    //     voiceId: "Elliot",
+    //     provider: "vapi",
+    //   },
+    //   createdAt: "2025-12-18T00: 28: 37.571Z",
+    //   updatedAt: "2025-12-18T00: 36: 31.370Z",
+    //   model: {
+    //     model: "gemini-2.5-flash",
+    //     messages: [
+    //       {
+    //         role: "system",
+    //         content:
+    //           "You are a friendly General Physician AI. Greet the user and quickly ask what symptoms they’re experiencing. Keep responses short and helpful",
+    //       },
+    //     ],
+    //     provider: "google",
+    //   },
+    //   firstMessage:
+    //     "Hello! Thank you for connecting. Can you please tell me your full name and age",
+    //   voicemailMessage: "Please call back when you're available.",
+    //   endCallMessage: "Goodbye.",
+    //   transcriber: {
+    //     language: "multi",
+    //     provider: "assembly-ai",
+    //     formatTurns: true,
+    //     speechModel: "universal-streaming-multilingual",
+    //     languageDetection: true,
+    //     confidenceThreshold: 0.4,
+    //     disablePartialTranscripts: false,
+    //   },
+    //   analysisPlan: {
+    //     summaryPlan: {
+    //       enabled: false,
+    //     },
+    //     successEvaluationPlan: {
+    //       enabled: false,
+    //     },
+    //   },
+    //   isServerUrlSecretSet: false,
+    // };
 
     const VapiAgentConfig = {
-      name: "AI Medical Doctor Voice Agent",
+      name: "General Physician",
       firstMessage:
         "Hi there! I'm your AI medical assistant. How can I help you today?",
       transcriber: {
         provider: "assembly-ai",
-        language: "en",
+        language: "multi",
       },
       voice: {
         provider: "vapi",
@@ -53,7 +98,7 @@ const MedicalVoiceAgent = () => {
       },
       model: {
         provider: "openai",
-        modelName: "gpt-4",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
@@ -63,15 +108,21 @@ const MedicalVoiceAgent = () => {
       },
     };
 
+    const vapi = new Vapi(process.env.NEXT_PUBLIC_VAPI_API_KEY!);
+    setVapiInstance(vapi);
+
     // @ts-ignore
+    // vapi.start(process.env.NEXT_PUBLIC_VAPI_AI_ASSISTANT_ID);
     vapi.start(VapiAgentConfig);
 
     vapi.on("call-start", () => {
+      setLoading(false);
       console.log("Call started");
       setCallStarted(true);
     });
     vapi.on("call-end", () => {
       console.log("Call ended");
+      setLoading(true);
       setCallStarted(false);
     });
     vapi.on("message", (message) => {
@@ -97,9 +148,13 @@ const MedicalVoiceAgent = () => {
       console.log("Assistant stopped speaking");
       setCurrentRole("user");
     });
+    vapi.on("error", (err) => {
+      console.error("VAPI ERROR:", err);
+      toast.error("Failed to start call: " + err?.error?.error?.message[0]);
+    });
   };
 
-  const endCall = () => {
+  const endCall = async () => {
     if (!vapiInstance) return;
 
     vapiInstance.stop();
@@ -107,9 +162,29 @@ const MedicalVoiceAgent = () => {
     vapiInstance.off("call-start", () => console.log("Call start off"));
     vapiInstance.off("call-end", () => console.log("Call end off"));
     vapiInstance.off("message", () => console.log("Call message off"));
+    vapiInstance.off("speech-start", () => console.log("Call speech-start off"));
+    vapiInstance.off("speech-end", () => console.log("Call speech-end off"));
+    vapiInstance.off("error", () => console.log("Call error off"));
 
+    await GenerateReport();
     setCallStarted(false);
+    setLoading(false);
     setVapiInstance(null);
+  };
+
+  const GenerateReport = async () => {
+    try {
+      const res = await axios.post("/api/medical-report", {
+        messages: messages,
+        sessionDetail: sessionDetail,
+        sessionId: sessionId,
+      });
+
+      console.log(res.data);
+      return res.data;
+    } catch (error: any) {
+      toast.error(error?.message);
+    }
   };
 
   return (
@@ -154,16 +229,16 @@ const MedicalVoiceAgent = () => {
             )}
           </div>
           {callStarted ? (
-            <Button variant={"destructive"} onClick={endCall} className="mt-20">
-              <PhoneOff /> Disconnect
+            <Button disabled={loading} variant={"destructive"} onClick={endCall} className="mt-20">
+              <PhoneOff /> {loading ? "Disconnecting" : "Disconnect"} Disconnect
             </Button>
           ) : (
             <Button
-              disabled={callStarted}
+              disabled={loading}
               onClick={startCall}
-              className="mt-20"
+              className="mt-20 cursor-pointer"
             >
-              <PhoneCall /> Start Call
+              <PhoneCall /> {loading ? "Starting Call" : "Start Call"}
             </Button>
           )}
         </div>

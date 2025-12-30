@@ -1,13 +1,28 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AddNewSessionDialog from "./AddNewSessionDialog";
+import axios from "axios";
+import { toast } from "sonner";
+import { HistoryTable } from "./HistoryTable";
 
 const HistoryList = () => {
   const [historyList, setHistoryList] = useState([]);
 
+  useEffect(() => {
+    GetHostoryList();
+  }, []);
+
+  const GetHostoryList = async (): Promise<void> => {
+    try {
+      const res = await axios.get("/api/session-chat?sessionId=all");
+      console.log(res)
+      setHistoryList(res.data);
+    } catch (error: any) {
+      toast.error(error?.message || "Something went wrong");
+    }
+  };
   return (
     <div className="mt-10">
       {historyList.length == 0 ? (
@@ -23,7 +38,9 @@ const HistoryList = () => {
           <AddNewSessionDialog />
         </div>
       ) : (
-        <div>List</div>
+        <div>
+          { historyList.length > 0 && <HistoryTable historyList={historyList} />}
+        </div>
       )}
     </div>
   );

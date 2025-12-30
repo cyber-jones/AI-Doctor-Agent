@@ -23,7 +23,7 @@ export const AIDoctorAgents: AIDoctorAgent[] = [
         description: "Handles skin issues like rashes, acne, or infections.",
         image: "/doctor3.png",
         agentPrompt: "You are a knowledgeable Dermatologist AI. Ask short questions about the skin issue and give simple, clear advice.",
-        voiceId: "Tera",
+        voiceId: "Tara",
         subscriptionRequired: true
     },
     {
@@ -90,3 +90,6 @@ export const AIDoctorAgents: AIDoctorAgent[] = [
         subscriptionRequired: true
     }
 ];
+
+
+export const REPORT_GEN_PROMPT = `Depending on doctor AI agent info and conversation between AI medical and user`;

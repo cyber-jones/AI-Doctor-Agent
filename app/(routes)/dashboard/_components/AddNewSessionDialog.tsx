@@ -22,7 +22,7 @@ import { useRouter } from "next/navigation";
 import { AIDoctorAgents } from "@/lib/list";
 
 const AddNewSessionDialog = () => {
-  const [note, setNote] = useState<string>("");
+  const [note, setNote] = useState<string>("I have an headache");
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedDoctor, setSelectedDoctor] = useState<
     AIDoctorAgent | undefined
@@ -42,9 +42,8 @@ const AddNewSessionDialog = () => {
           "You have reached the limit. Please try again later." +
             result.data?.error?.message
         );
-      else if (result.data == null || result.data == undefined)
-        toast.error("No doctors found");
-      else setSuggestedDoctors(result.data);
+        
+        setSuggestedDoctors(result.data);
     } catch (error: any) {
       toast.error(error?.message || "Something went wrong");
       console.log("Error creating session:", error);
@@ -113,8 +112,8 @@ const AddNewSessionDialog = () => {
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
-            {suggestedDoctors ? (
-              <Button onClick={OnStartConsultation}>
+            {selectedDoctor ? (
+              <Button className="cursor-pointer" onClick={OnStartConsultation}>
                 Start Consultation{" "}
                 {loading ? (
                   <Loader2 className="animate-spin" />

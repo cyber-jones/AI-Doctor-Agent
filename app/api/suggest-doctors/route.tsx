@@ -7,6 +7,7 @@ export async function POST(req: NextRequest) {
   try {
     const completion = await openai.chat.completions.create({
       model: "google/gemini-2.0-flash-exp:free",
+      // model: "gpt-4o-mini",
       messages: [
         { role: "system", content: JSON.stringify(AIDoctorAgents) },
         {
@@ -14,12 +15,13 @@ export async function POST(req: NextRequest) {
           content:
             "User Notes/Symptoms: " +
             notes +
-            ", Depending on User Notes/symptoms, please suggest list of doctors, return object in json form only",
+            ", Depending on User Notes/symptoms, please suggest list of doctors, return object in json format only",
         },
       ],
     });
 
     const rawResponse = completion.choices[0].message.content || "";
+    console.log("AI-RawResponse", rawResponse);
     const res = rawResponse.trim().replace("```json`", "").replace("```", "");
     const JSONRep = JSON.parse(res);
     console.log("AI-Doctors", JSONRep);

@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     console.log("AI-RawResponse", rawResponse);
     const res = rawResponse.trim().replace("```json`", "").replace("```", "");
     const JSONRep = JSON.parse(res);
-    console.log("AI-Doctors", JSONRep);
+    console.log("AI-Doctors-Summary", JSONRep);
 
     const result = await db
       .update(SessionChatTable)

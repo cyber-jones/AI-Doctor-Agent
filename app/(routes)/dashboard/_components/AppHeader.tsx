@@ -7,17 +7,17 @@ const menuOptions: MenuOption[] = [
     {
         id: 1,
         name: "Home",
-        path: "/"
+        path: "/dashboard"
     },
     {
         id: 2,
         name: "History",
-        path: "/history"
+        path: "/dashboard/history"
     },
     {
         id: 3,
         name: "Pricing",
-        path: "/pricing"
+        path: "/dashboard/billing"
     },
     {
         id: 4,

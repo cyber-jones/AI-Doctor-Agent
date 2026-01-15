@@ -1,14 +1,48 @@
+"use client";
+
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@clerk/nextjs";
 import { IconArrowRight } from "@tabler/icons-react";
+import axios from "axios";
+import { Loader2Icon } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
 
 type props = {
   doctorAgent: AIDoctorAgent;
 };
 
 const DoctorAgentCard = ({ doctorAgent }: props) => {
+  const { has } = useAuth();
+  const router = useRouter();
+  //@ts-ignore
+  const hasPremuimAccess = has && has({ plan: "pro" });
+  const [loading, setLoading] = useState<boolean>(false);
+  
+  const OnStartConsultation = async () => {
+    setLoading(true);
+    try {
+      const result = await axios.post("/api/session-chat", {
+        notes: "New Query",
+        selectedDoctor: doctorAgent,
+      });
+
+      router.push(`/dashboard/medical-agent/${result.data.sessionId}`);
+    } catch (error: any) {
+      toast.error(error?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div>
+    <div className="relative">
+      {doctorAgent.subscriptionRequired && (
+        <Badge className="absolute m-1 right-0">Premium</Badge>
+      )}
       <Image
         src={doctorAgent.image}
         alt={doctorAgent.specialist}
@@ -20,8 +54,12 @@ const DoctorAgentCard = ({ doctorAgent }: props) => {
       <p className="line-clamp-2 text-sm text-gray-500">
         {doctorAgent.description}
       </p>
-      <Button className="w-full mt-2">
-        Start Consultion <IconArrowRight />
+      <Button
+        disabled={!hasPremuimAccess && doctorAgent.subscriptionRequired}
+        className="w-full mt-2"
+        onClick={OnStartConsultation}
+      >
+        Start Consultion {loading ? <Loader2Icon className="animate-spin"/> : <IconArrowRight />}
       </Button>
     </div>
   );

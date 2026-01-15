@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -8,8 +8,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 import moment from "moment";
+import ViewReportDialog from "./ViewReportDialog";
 
 const invoices = [
   {
@@ -54,10 +55,10 @@ const invoices = [
     totalAmount: "$300.00",
     paymentMethod: "Credit Card",
   },
-]
+];
 type Props = {
-    historyList: SessionDetail[]
-}
+  historyList: SessionDetail[];
+};
 
 export function HistoryTable({ historyList }: Props) {
   return (
@@ -74,10 +75,16 @@ export function HistoryTable({ historyList }: Props) {
       <TableBody>
         {historyList.map((record: SessionDetail, index: number) => (
           <TableRow key={index}>
-            <TableCell className="font-medium">{record.selectedDoctor.specialist}</TableCell>
+            <TableCell className="font-medium">
+              {record.selectedDoctor.specialist}
+            </TableCell>
             <TableCell>{record.notes}</TableCell>
-            <TableCell>{moment(new Date(record.createdOn)).fromNow()}</TableCell>
-            <TableCell className="text-right"><Button variant={"link"} size={"sm"}>View Report</Button></TableCell>
+            <TableCell>
+              {moment(new Date(record.createdOn)).fromNow()}
+            </TableCell>
+            <TableCell className="text-right">
+              <ViewReportDialog record={record} />
+            </TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -88,5 +95,5 @@ export function HistoryTable({ historyList }: Props) {
         </TableRow>
       </TableFooter> */}
     </Table>
-  )
+  );
 }

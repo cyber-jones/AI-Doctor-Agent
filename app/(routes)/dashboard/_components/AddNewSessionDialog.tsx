@@ -15,14 +15,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import axios from "axios";
 import { ArrowRight, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import SuggestedDocterCard from "./SuggestedDocterCard";
 import { useRouter } from "next/navigation";
 import { AIDoctorAgents } from "@/lib/list";
+import { useAuth } from "@clerk/nextjs";
 
 const AddNewSessionDialog = () => {
-  const [note, setNote] = useState<string>("I have an headache");
+  const [note, setNote] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedDoctor, setSelectedDoctor] = useState<
     AIDoctorAgent | undefined
@@ -31,6 +32,24 @@ const AddNewSessionDialog = () => {
     AIDoctorAgent[] | undefined
   >(AIDoctorAgents.slice(0, 3));
   const router = useRouter();
+  const { has } = useAuth();
+  //@ts-ignore
+  const hasPremuimAccess = has && has({ plan: "pro" });
+  const [historyList, setHistoryList] = useState<SessionDetail[]>([]);
+
+  useEffect(() => {
+    GetHostoryList();
+  }, []);
+
+  const GetHostoryList = async (): Promise<void> => {
+    try {
+      const res = await axios.get("/api/session-chat?sessionId=all");
+      console.log(res);
+      setHistoryList(res.data);
+    } catch (error: any) {
+      toast.error(error?.message || "Something went wrong");
+    }
+  };
 
   const OnClickNext = async (): Promise<void> => {
     setLoading(true);
@@ -42,8 +61,8 @@ const AddNewSessionDialog = () => {
           "You have reached the limit. Please try again later." +
             result.data?.error?.message
         );
-        
-        setSuggestedDoctors(result.data);
+
+      setSuggestedDoctors(result.data);
     } catch (error: any) {
       toast.error(error?.message || "Something went wrong");
       console.log("Error creating session:", error);
@@ -53,6 +72,7 @@ const AddNewSessionDialog = () => {
   };
 
   const OnStartConsultation = async () => {
+    setNote("I have an headache and fever.");
     setLoading(true);
     try {
       const result = await axios.post("/api/session-chat", {
@@ -67,11 +87,15 @@ const AddNewSessionDialog = () => {
       setLoading(false);
     }
   };
+  
   return (
     <Dialog>
       <form>
         <DialogTrigger asChild>
-          <Button className="mt-3">Start a Consultation</Button>
+          <Button className="mt-3" disabled={!hasPremuimAccess && historyList.length >= 1}>
+            {" "}
+            + Start a Consultation
+          </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-106.25">
           <DialogHeader>

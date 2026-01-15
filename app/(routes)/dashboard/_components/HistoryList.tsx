@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { HistoryTable } from "./HistoryTable";
 
 const HistoryList = () => {
-  const [historyList, setHistoryList] = useState([]);
+  const [historyList, setHistoryList] = useState<SessionDetail[]>([]);
 
   useEffect(() => {
     GetHostoryList();
@@ -17,12 +17,13 @@ const HistoryList = () => {
   const GetHostoryList = async (): Promise<void> => {
     try {
       const res = await axios.get("/api/session-chat?sessionId=all");
-      console.log(res)
+      console.log(res);
       setHistoryList(res.data);
     } catch (error: any) {
       toast.error(error?.message || "Something went wrong");
     }
   };
+  
   return (
     <div className="mt-10">
       {historyList.length == 0 ? (

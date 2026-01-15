@@ -102,7 +102,7 @@ export default function HeroSectionOne() {
           </div>
         </motion.div>
       </div>
-      <FeatureBendtoGrid />
+      {/* <FeatureBendtoGrid /> */}
     </div>
   );
 }
